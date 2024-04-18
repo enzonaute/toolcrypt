@@ -6,6 +6,7 @@ import string
 # Constants
 ALPHABET = string.ascii_uppercase
 
+# Caesar Cipher functions
 def caesar_cipher(message, key, mode='encrypt'):
     shifted = ALPHABET[key:] + ALPHABET[:key]
     if mode == 'decrypt':
@@ -13,6 +14,7 @@ def caesar_cipher(message, key, mode='encrypt'):
     trans = str.maketrans(ALPHABET, shifted)
     return message.translate(trans)
 
+# Vigenère Cipher functions
 def vigenere_cipher(message, key, mode='encrypt'):
     if len(key) == 0:  # Ensure key is not empty
         messagebox.showerror("Error", "Key cannot be empty for Vigenère cipher.")
@@ -28,6 +30,7 @@ def vigenere_cipher(message, key, mode='encrypt'):
             trans += char  # keep non-alphabetic characters as is
     return trans
 
+# Vernam Cipher functions
 def vernam_cipher(message, key):
     if len(key) != len(message):
         messagebox.showerror("Error", "Key must be the same length as message for Vernam cipher.")
@@ -54,6 +57,7 @@ class CryptoApp(tk.Tk):
         ttk.Label(self, text="Message:").pack(pady=(10,0))
         message_entry = scrolledtext.ScrolledText(self, height=3, width=50)
         message_entry.pack()
+        message_entry.bind('<KeyRelease>', lambda e: self.update_key(self.cipher_var.get()))  # Update key on text change
 
         # Key Input
         ttk.Label(self, text="Key (auto-generated):").pack(pady=(10,0))
@@ -77,10 +81,9 @@ class CryptoApp(tk.Tk):
         result_text = scrolledtext.ScrolledText(self, height=3, width=50)
         result_text.pack()
 
-    def update_key(self, _):
+    def update_key(self, cipher):
         message = message_entry.get('1.0', tk.END).strip()
         if message:
-            cipher = self.cipher_var.get()
             key = generate_key(cipher, len(message))
             key_entry.delete(0, tk.END)
             key_entry.insert(0, str(key))
