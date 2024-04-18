@@ -1,12 +1,11 @@
 import tkinter as tk
-from tkinter import ttk, scrolledtext, messagebox
+from tkinter import ttk, scrolledtext, messagebox, Checkbutton, IntVar
 import random
 import string
 
 # Constants
 ALPHABET = string.ascii_uppercase
 
-# Caesar Cipher functions
 def caesar_cipher(message, key, mode='encrypt'):
     shifted = ALPHABET[key:] + ALPHABET[:key]
     if mode == 'decrypt':
@@ -14,7 +13,6 @@ def caesar_cipher(message, key, mode='encrypt'):
     trans = str.maketrans(ALPHABET, shifted)
     return message.translate(trans)
 
-# Vigenère Cipher functions
 def vigenere_cipher(message, key, mode='encrypt'):
     if len(key) == 0:  # Ensure key is not empty
         messagebox.showerror("Error", "Key cannot be empty for Vigenère cipher.")
@@ -27,10 +25,9 @@ def vigenere_cipher(message, key, mode='encrypt'):
             shift = ALPHABET.index(char) + key_index if mode == 'encrypt' else ALPHABET.index(char) - key_index
             trans += ALPHABET[shift % 26]
         else:
-            trans += char  # keep non-alphabetic characters as is
+            trans += char
     return trans
 
-# Vernam Cipher functions
 def vernam_cipher(message, key):
     if len(key) != len(message):
         messagebox.showerror("Error", "Key must be the same length as message for Vernam cipher.")
@@ -43,12 +40,12 @@ def generate_key(cipher, message_length):
     elif cipher in ['Vigenère', 'Vernam']:
         return ''.join(random.choice(ALPHABET) for _ in range(message_length))
 
-# GUI Application
 class CryptoApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title('Cryptography Suite')
         self.geometry('600x400')
+        self.auto_key_var = IntVar(value=1)  # Checkbox state
         self.create_widgets()
 
     def create_widgets(self):
@@ -57,7 +54,7 @@ class CryptoApp(tk.Tk):
         ttk.Label(self, text="Message:").pack(pady=(10,0))
         message_entry = scrolledtext.ScrolledText(self, height=3, width=50)
         message_entry.pack()
-        message_entry.bind('<KeyRelease>', lambda e: self.update_key(self.cipher_var.get()))  # Update key on text change
+        message_entry.bind('<KeyRelease>', self.conditionally_update_key)
 
         # Key Input
         ttk.Label(self, text="Key (auto-generated):").pack(pady=(10,0))
@@ -67,12 +64,13 @@ class CryptoApp(tk.Tk):
         # Cipher Selection
         ttk.Label(self, text="Select Cipher:").pack(pady=(10,0))
         self.cipher_var = tk.StringVar(self)
-        ciphers = ['Caesar', 'Vigenère', 'Vernam']
+        ciphers = ['Caesar', 'Vigenère', 'Vernam']  # Ensure all ciphers are listed
         self.cipher_var.set('Caesar')  # Default value
-        cipher_menu = ttk.OptionMenu(self, self.cipher_var, *ciphers, command=self.update_key)
+        cipher_menu = ttk.OptionMenu(self, self.cipher_var, self.cipher_var.get(), *ciphers, command=self.update_key)
         cipher_menu.pack()
 
-        # Encrypt and Decrypt Buttons
+        Checkbutton(self, text="Auto-regenerate key on text change", variable=self.auto_key_var).pack()
+
         ttk.Button(self, text="Encrypt", command=lambda: self.process_cipher('encrypt')).pack(pady=(5,2))
         ttk.Button(self, text="Decrypt", command=lambda: self.process_cipher('decrypt')).pack(pady=(2,5))
 
@@ -80,6 +78,10 @@ class CryptoApp(tk.Tk):
         ttk.Label(self, text="Result:").pack(pady=(10,0))
         result_text = scrolledtext.ScrolledText(self, height=3, width=50)
         result_text.pack()
+
+    def conditionally_update_key(self, event):
+        if self.auto_key_var.get() == 1:
+            self.update_key(self.cipher_var.get())
 
     def update_key(self, cipher):
         message = message_entry.get('1.0', tk.END).strip()
@@ -115,4 +117,3 @@ class CryptoApp(tk.Tk):
 if __name__ == '__main__':
     app = CryptoApp()
     app.mainloop()
-
